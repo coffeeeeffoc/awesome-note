@@ -24,7 +24,7 @@ export default defineManifest({
     service_worker: 'src/background/service-worker.ts',
     type: 'module',
   },
-  permissions: ['storage', 'sidePanel', 'contextMenus'],
+  permissions: ['storage', 'sidePanel', 'contextMenus', 'windows'],
   commands: {
     _execute_action: {
       suggested_key: { default: 'Alt+N' },

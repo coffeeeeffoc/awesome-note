@@ -59,16 +59,13 @@ export function TopBar({ mode }: Props) {
   }
 
   function openSidePanel() {
-    const cr = (globalThis as typeof globalThis & { chrome?: typeof chrome }).chrome
-    if (cr?.sidePanel) {
-      cr.sidePanel.open({ windowId: undefined as unknown as number })
-    }
+    // Background service worker handles windowId lookup and sidePanel.open()
+    chrome.runtime.sendMessage({ type: 'OPEN_SIDE_PANEL' })
   }
 
   function openFullPage() {
-    const cr = (globalThis as typeof globalThis & { chrome?: typeof chrome }).chrome
-    const url = cr?.runtime?.getURL?.('src/entries/fullpage/index.html')
-    if (url) window.open(url, '_blank')
+    const url = chrome.runtime.getURL('src/entries/fullpage/index.html')
+    window.open(url, '_blank')
   }
 
   return (
