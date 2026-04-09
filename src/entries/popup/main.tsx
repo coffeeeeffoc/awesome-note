@@ -6,6 +6,10 @@ import { flushPendingDeleteImages } from '../../lib/storage'
 import { deleteImageById } from '../../lib/db'
 import '../../styles/global.css'
 
+// Force exact popup dimensions via inline style (beats any stylesheet cascade)
+Object.assign(document.documentElement.style, { width: '400px', height: '580px', overflow: 'hidden' })
+Object.assign(document.body.style, { width: '400px', height: '580px', overflow: 'hidden' })
+
 // Flush orphan images on startup
 flushPendingDeleteImages().then(async (ids) => {
   for (const id of ids) {
