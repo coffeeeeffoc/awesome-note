@@ -1,0 +1,48 @@
+.shell {
+  display: grid;
+  grid-template-rows: var(--topbar-height) 1fr;
+  grid-template-columns: var(--left-w, var(--panel-left-width)) var(--mid-w, var(--panel-mid-width)) 1fr;
+  grid-template-areas:
+    'topbar topbar topbar'
+    'left mid editor';
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  background: var(--bg-primary);
+}
+
+/* ── Popup ── */
+.shell[data-mode='popup'] {
+  --left-w: 0px;
+  --mid-w: 100%;
+  width: 400px;
+  height: 580px;
+  /* Hide editor column when no note open */
+}
+
+.shell[data-mode='popup'][data-note-open='true'] {
+  --mid-w: 0px;
+}
+
+/* ── Sidepanel ── */
+.shell[data-mode='sidepanel'] {
+  --left-w: var(--panel-left-width);
+  --mid-w: var(--panel-mid-width);
+  width: 380px;
+  height: 100vh;
+}
+
+/* ── Fullpage uses default variables ── */
+.shell[data-mode='fullpage'] {
+  width: 100vw;
+  height: 100vh;
+}
+
+/* ── Collapse states (all modes) ── */
+.shell[data-left-collapsed='true'] {
+  --left-w: 0px;
+}
+
+.shell[data-mid-collapsed='true'] {
+  --mid-w: 0px;
+}

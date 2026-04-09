@@ -1,0 +1,59 @@
+.popover {
+  position: absolute;
+  bottom: calc(100% + 4px);
+  left: 0;
+  z-index: 100;
+  background: var(--bg-primary);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-md);
+  padding: 8px;
+}
+
+.form {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.input {
+  width: 220px;
+  padding: 5px 10px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  font-size: 13px;
+  color: var(--text-primary);
+  background: var(--bg-secondary);
+}
+
+.input:focus {
+  border-color: var(--border-focus);
+  outline: none;
+}
+
+.apply {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 5px 10px;
+  background: var(--accent);
+  color: var(--text-on-accent);
+  border-radius: var(--radius-sm);
+  font-size: 12px;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.remove {
+  display: flex;
+  align-items: center;
+  padding: 5px;
+  border-radius: var(--radius-sm);
+  color: #ef4444;
+  cursor: pointer;
+  transition: background var(--duration-fast);
+}
+
+.remove:hover {
+  background: #fef2f2;
+}

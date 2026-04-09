@@ -1,0 +1,38 @@
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--radius-sm);
+  color: var(--text-secondary);
+  transition: background var(--duration-fast), color var(--duration-fast);
+  flex-shrink: 0;
+}
+
+.btn[data-size='md'] {
+  width: 28px;
+  height: 28px;
+}
+
+.btn[data-size='sm'] {
+  width: 22px;
+  height: 22px;
+}
+
+.btn:hover {
+  background: var(--bg-hover);
+  color: var(--text-primary);
+}
+
+.btn:active {
+  background: var(--bg-active);
+}
+
+.btn[data-active='true'] {
+  background: var(--accent-light);
+  color: var(--accent);
+}
+
+.btn:disabled {
+  opacity: 0.4;
+  pointer-events: none;
+}
