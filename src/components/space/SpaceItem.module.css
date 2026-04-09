@@ -24,6 +24,12 @@
   color: var(--accent);
 }
 
+.row[data-dragover='true'] {
+  background: var(--accent-light);
+  outline: 2px dashed var(--accent);
+  outline-offset: -2px;
+}
+
 .row:hover .more {
   opacity: 1;
 }

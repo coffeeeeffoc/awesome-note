@@ -39,27 +39,18 @@
   flex: 1;
 }
 
-.saveStatus {
-  display: flex;
-  align-items: center;
+.saveIndicator {
+  color: var(--text-muted);
 }
 
-.dot {
-  width: 7px;
-  height: 7px;
-  border-radius: 50%;
-  background: var(--text-muted);
-  transition: background var(--duration-normal);
+.saveIndicator[data-saving='true'] {
+  color: #f97316;
+  animation: pulse 1s ease-in-out infinite;
 }
 
 @keyframes pulse {
   0%, 100% { opacity: 1; }
   50% { opacity: 0.4; }
-}
-
-.dot[data-saving='true'] {
-  background: #f97316;
-  animation: pulse 1s ease-in-out infinite;
 }
 
 .empty {

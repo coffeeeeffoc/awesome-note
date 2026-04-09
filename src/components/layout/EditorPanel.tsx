@@ -4,9 +4,11 @@ import { useNotes } from '../../hooks/useNotes'
 import { useTags } from '../../hooks/useTags'
 import { Editor } from '../editor/Editor'
 import { TagBadge } from '../tag/TagBadge'
-import { Copy, Trash2, MoreHorizontal } from 'lucide-react'
+import { SnapshotPanel } from '../snapshot/SnapshotPanel'
+import { Copy, Trash2, MoreHorizontal, Check } from 'lucide-react'
 import { IconButton } from '../ui/IconButton'
 import { ContextMenu, type ContextMenuItem } from '../ui/ContextMenu'
+import { getSyncBus } from '../../lib/sync'
 import styles from './EditorPanel.module.css'
 import type { Note } from '../../types'
 import { getNoteById } from '../../lib/db'
@@ -66,7 +68,15 @@ export function EditorPanel() {
           className={styles.title}
           placeholder="无标题"
           value={note.title}
-          onChange={(e) => setNote({ ...note, title: e.target.value })}
+          data-note-title
+          onChange={(e) => {
+            const newTitle = e.target.value
+            const updated = { ...note, title: newTitle }
+            setNote(updated)
+            // Instant sync to other panels
+            getSyncBus().broadcast({ type: 'NOTE_TITLE_CHANGED', id: note.id, title: newTitle })
+            saveNote(updated)
+          }}
         />
         <div className={styles.metaActions}>
           <div className={styles.tags}>
@@ -82,12 +92,16 @@ export function EditorPanel() {
           </div>
 
           {/* Save indicator */}
-          <div className={styles.saveStatus}>
-            <span
-              className={styles.dot}
-              data-saving={saveStatus === 'saving' ? 'true' : undefined}
-            />
-          </div>
+          <IconButton
+            label={saveStatus === 'saving' ? '保存中...' : '已自动保存'}
+            size="sm"
+            className={styles.saveIndicator}
+          >
+            <Check size={12} data-saving={saveStatus === 'saving' ? 'true' : undefined} />
+          </IconButton>
+
+          {/* Snapshot actions */}
+          <SnapshotPanel note={note} onRestore={(restored) => setNote(restored)} />
 
           {/* More menu */}
           <IconButton

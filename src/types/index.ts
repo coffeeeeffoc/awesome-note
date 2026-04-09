@@ -36,12 +36,23 @@ export type ThemeMode = 'system' | 'dark' | 'light'
 export type ViewMode = 'list' | 'masonry'
 export type AppMode = 'popup' | 'sidepanel' | 'fullpage'
 
+export interface Snapshot {
+  id: string
+  noteId: string
+  title: string
+  content: JSONContent
+  trigger: 'manual' | 'save-shortcut'
+  createdAt: number
+}
+
 export type SyncMessage =
   | { type: 'NOTE_UPDATED'; id: string }
   | { type: 'NOTE_DELETED'; id: string }
   | { type: 'NOTE_CREATED'; id: string }
   | { type: 'SPACE_CHANGED' }
   | { type: 'TAG_CHANGED' }
+  | { type: 'ACTIVE_NOTE_CHANGED'; noteId: string | null; spaceId: string | null }
+  | { type: 'NOTE_TITLE_CHANGED'; id: string; title: string }
 
 export const TAG_COLORS: readonly string[] = [
   '#6366f1', // indigo

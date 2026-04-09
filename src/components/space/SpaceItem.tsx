@@ -16,6 +16,8 @@ interface Props {
   onAdd: () => void
   onRename: () => void
   onDelete: () => void
+  onDropSpace?: (spaceId: string, targetParentId: string) => void
+  onDropNote?: (noteId: string, targetSpaceId: string) => void
 }
 
 export function SpaceItem({
@@ -29,8 +31,11 @@ export function SpaceItem({
   onAdd,
   onRename,
   onDelete,
+  onDropSpace,
+  onDropNote,
 }: Props) {
   const [menuPos, setMenuPos] = useState<{ x: number; y: number } | null>(null)
+  const [dragOver, setDragOver] = useState(false)
   const btnRef = useRef<HTMLButtonElement>(null)
 
   const menuItems: ContextMenuItem[] = [
@@ -49,6 +54,34 @@ export function SpaceItem({
     setMenuPos({ x: rect.left, y: rect.bottom + 4 })
   }
 
+  function handleDragStart(e: React.DragEvent) {
+    e.dataTransfer.setData('application/x-space-id', space.id)
+    e.dataTransfer.effectAllowed = 'move'
+  }
+
+  function handleDragOver(e: React.DragEvent) {
+    e.preventDefault()
+    e.dataTransfer.dropEffect = 'move'
+    setDragOver(true)
+  }
+
+  function handleDragLeave() {
+    setDragOver(false)
+  }
+
+  function handleDrop(e: React.DragEvent) {
+    e.preventDefault()
+    setDragOver(false)
+    const droppedSpaceId = e.dataTransfer.getData('application/x-space-id')
+    const droppedNoteId = e.dataTransfer.getData('application/x-note-id')
+    if (droppedSpaceId && droppedSpaceId !== space.id && onDropSpace) {
+      onDropSpace(droppedSpaceId, space.id)
+    }
+    if (droppedNoteId && onDropNote) {
+      onDropNote(droppedNoteId, space.id)
+    }
+  }
+
   return (
     <div
       className={styles.wrapper}
@@ -58,9 +91,15 @@ export function SpaceItem({
       <div
         className={styles.row}
         data-active={isActive ? 'true' : undefined}
+        data-dragover={dragOver ? 'true' : undefined}
         onClick={onSelect}
         role="treeitem"
         aria-selected={isActive}
+        draggable
+        onDragStart={handleDragStart}
+        onDragOver={handleDragOver}
+        onDragLeave={handleDragLeave}
+        onDrop={handleDrop}
       >
         <button
           type="button"

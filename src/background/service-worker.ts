@@ -19,10 +19,9 @@ chrome.contextMenus.onClicked.addListener((info, tab) => {
   }
 })
 
-// Message handler: popup/fullpage asks background to open the side panel
+// Message handler: popup/fullpage asks background to open/close the side panel
 chrome.runtime.onMessage.addListener((message, sender) => {
   if (message.type === 'OPEN_SIDE_PANEL') {
-    // Get the window from the sender tab, or fall back to the last focused window
     const windowId = sender.tab?.windowId
     if (windowId) {
       chrome.sidePanel.open({ windowId })
@@ -30,6 +29,22 @@ chrome.runtime.onMessage.addListener((message, sender) => {
       chrome.windows.getLastFocused((win) => {
         if (win.id) chrome.sidePanel.open({ windowId: win.id })
       })
+    }
+  }
+
+  if (message.type === 'CLOSE_SIDE_PANEL') {
+    // Close side panel if the API supports it (Chrome 116+)
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const sp = chrome.sidePanel as any
+    if (typeof sp.close === 'function') {
+      const windowId = sender.tab?.windowId
+      if (windowId) {
+        sp.close({ windowId }).catch(() => {})
+      } else {
+        chrome.windows.getLastFocused((win) => {
+          if (win.id) sp.close({ windowId: win.id }).catch(() => {})
+        })
+      }
     }
   }
 })

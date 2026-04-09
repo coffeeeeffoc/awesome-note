@@ -15,6 +15,7 @@ flushPendingDeleteImages().then(async (ids) => {
 function App() {
   const setMode = useAppStore((s) => s.setMode)
   const setActiveNote = useAppStore((s) => s.setActiveNote)
+  const setActiveSpace = useAppStore((s) => s.setActiveSpace)
 
   useEffect(() => {
     setMode('fullpage')
@@ -29,7 +30,11 @@ function App() {
         if (id) setActiveNote(id)
       })
     }
-  }, [setMode, setActiveNote])
+    // Restore space
+    getStorage('lastOpenSpaceId').then((id) => {
+      if (id) setActiveSpace(id)
+    })
+  }, [setMode, setActiveNote, setActiveSpace])
 
   return <AppShell mode="fullpage" />
 }

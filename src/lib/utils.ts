@@ -49,6 +49,43 @@ export function formatRelativeTime(ts: number): string {
   return new Date(ts).toLocaleDateString('zh-CN', { month: 'short', day: 'numeric' })
 }
 
+/** Format a timestamp as absolute time string */
+export function formatTime(ts: number): string {
+  const d = new Date(ts)
+  const now = new Date()
+  const sameDay = d.toDateString() === now.toDateString()
+  const time = d.toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit', second: '2-digit' })
+  if (sameDay) return time
+  return d.toLocaleDateString('zh-CN', { month: 'short', day: 'numeric' }) + ' ' + time
+}
+
+/** Simple line-level diff between two texts. Returns array of {type, text} */
+export function simpleDiff(
+  oldText: string,
+  newText: string,
+): Array<{ type: 'add' | 'remove' | 'same'; text: string }> {
+  const oldLines = oldText.split('\n')
+  const newLines = newText.split('\n')
+  const result: Array<{ type: 'add' | 'remove' | 'same'; text: string }> = []
+
+  const maxLen = Math.max(oldLines.length, newLines.length)
+  for (let i = 0; i < maxLen; i++) {
+    const o = oldLines[i]
+    const n = newLines[i]
+    if (o === undefined) {
+      result.push({ type: 'add', text: n })
+    } else if (n === undefined) {
+      result.push({ type: 'remove', text: o })
+    } else if (o === n) {
+      result.push({ type: 'same', text: o })
+    } else {
+      result.push({ type: 'remove', text: o })
+      result.push({ type: 'add', text: n })
+    }
+  }
+  return result
+}
+
 /** Get all spaces sharing the same parentId (siblings). Optionally exclude self. */
 export function getSiblingSpaces(spaces: Space[], parentId: string | null, excludeId?: string): Space[] {
   return spaces.filter(

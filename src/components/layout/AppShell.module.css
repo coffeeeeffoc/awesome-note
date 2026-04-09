@@ -1,33 +1,46 @@
 .shell {
   display: grid;
   grid-template-rows: var(--topbar-height) 1fr;
-  grid-template-columns: var(--left-w, var(--panel-left-width)) var(--mid-w, var(--panel-mid-width)) 1fr;
+  grid-template-columns: var(--left-w, 280px) 4px 1fr;
   grid-template-areas:
     'topbar topbar topbar'
-    'left mid editor';
+    'left divider editor';
   width: 100%;
   height: 100%;
   overflow: hidden;
   background: var(--bg-primary);
 }
 
+/* ── Divider (drag handle) ── */
+.divider {
+  width: 4px;
+  cursor: col-resize;
+  background: transparent;
+  transition: background var(--duration-fast);
+  z-index: 2;
+}
+
+.divider:hover {
+  background: var(--accent);
+  opacity: 0.4;
+}
+
 /* ── Popup ── */
 .shell[data-mode='popup'] {
-  --left-w: 0px;
-  --mid-w: 100%;
+  --left-w: 100%;
+  grid-template-columns: 100% 0px 0fr;
   width: 400px;
   height: 580px;
-  /* Hide editor column when no note open */
 }
 
 .shell[data-mode='popup'][data-note-open='true'] {
-  --mid-w: 0px;
+  --left-w: 0px;
+  grid-template-columns: 0px 0px 1fr;
 }
 
 /* ── Sidepanel ── */
 .shell[data-mode='sidepanel'] {
-  --left-w: var(--panel-left-width);
-  --mid-w: var(--panel-mid-width);
+  --left-w: 280px;
   width: 380px;
   height: 100vh;
 }
@@ -38,11 +51,8 @@
   height: 100vh;
 }
 
-/* ── Collapse states (all modes) ── */
+/* ── Collapse state ── */
 .shell[data-left-collapsed='true'] {
   --left-w: 0px;
-}
-
-.shell[data-mid-collapsed='true'] {
-  --mid-w: 0px;
+  grid-template-columns: 0px 0px 1fr;
 }

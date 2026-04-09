@@ -9,13 +9,13 @@
 }
 
 .btn[data-size='md'] {
-  width: 28px;
-  height: 28px;
+  width: 32px;
+  height: 32px;
 }
 
 .btn[data-size='sm'] {
-  width: 22px;
-  height: 22px;
+  width: 26px;
+  height: 26px;
 }
 
 .btn:hover {
@@ -35,4 +35,36 @@
 .btn:disabled {
   opacity: 0.4;
   pointer-events: none;
+}
+
+/* ── Custom Tooltip (shows below button) ── */
+.btn {
+  position: relative;
+}
+
+.btn::after {
+  content: attr(data-tooltip);
+  position: absolute;
+  top: calc(100% + 50px);
+  left: 50%;
+  transform: translateX(-50%) translateY(-4px);
+  padding: 6px 10px;
+  border-radius: var(--radius-md);
+  background: var(--text-primary);
+  color: var(--bg-primary);
+  font-size: 12px;
+  white-space: nowrap;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity var(--duration-fast) var(--ease-out),
+    transform var(--duration-fast) var(--ease-out);
+  z-index: 1000;
+  line-height: 1.4;
+  box-shadow: var(--shadow-md);
+}
+
+.btn:hover::after {
+  opacity: 1;
+  transform: translateX(-50%) translateY(0);
+  transition-delay: 300ms;
 }

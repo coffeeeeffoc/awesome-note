@@ -3,11 +3,13 @@ import { useNotes } from '../../hooks/useNotes'
 import { useTags } from '../../hooks/useTags'
 import { NoteListRow } from '../note/NoteListRow'
 import { NoteCard } from '../note/NoteCard'
+import { getNoteById, updateNote } from '../../lib/db'
+import { getSyncBus } from '../../lib/sync'
 import styles from './NoteListPanel.module.css'
 
 export function NoteListPanel() {
   const { activeSpaceId, activeNoteId, setActiveNote, viewMode, searchQuery } = useAppStore()
-  const { notes, addNote } = useNotes(
+  const { notes, addNote, reload } = useNotes(
     searchQuery ? undefined : activeSpaceId,
     searchQuery,
   )
@@ -16,6 +18,15 @@ export function NoteListPanel() {
   async function handleNewNote() {
     const note = await addNote(activeSpaceId === 'unclassified' ? null : activeSpaceId)
     setActiveNote(note.id)
+  }
+
+  async function handleTitleChange(noteId: string, title: string) {
+    const note = await getNoteById(noteId)
+    if (!note) return
+    const updated = { ...note, title }
+    await updateNote(updated)
+    getSyncBus().broadcast({ type: 'NOTE_UPDATED', id: noteId })
+    await reload()
   }
 
   return (
@@ -48,6 +59,7 @@ export function NoteListPanel() {
                 tags={tags}
                 isActive={activeNoteId === note.id}
                 onClick={() => setActiveNote(note.id)}
+                onTitleChange={handleTitleChange}
               />
             ))
           : notes.map((note) => (

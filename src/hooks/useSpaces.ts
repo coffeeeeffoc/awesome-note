@@ -77,6 +77,17 @@ export function useSpaces() {
     })
   }
 
+  function expandAll() {
+    const allIds = new Set(spaces.map((s) => s.id))
+    setExpandedIds(allIds)
+    setStorage('spaceExpandedIds', [...allIds])
+  }
+
+  function collapseAll() {
+    setExpandedIds(new Set())
+    setStorage('spaceExpandedIds', [])
+  }
+
   return {
     spaces,
     expandedIds,
@@ -85,6 +96,8 @@ export function useSpaces() {
     moveSpace,
     removeSpace,
     toggleExpanded,
+    expandAll,
+    collapseAll,
     reload,
   }
 }

@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { Modal } from '../ui/Modal'
 import { suggestSpaceName } from '../../lib/utils'
 import styles from './SpaceModal.module.css'
@@ -16,6 +16,13 @@ export function SpaceModal({ mode, defaultName = '', siblings, onConfirm, onClos
   const [value, setValue] = useState(defaultName)
   const [suggestion, setSuggestion] = useState('')
   const [hasConflict, setHasConflict] = useState(false)
+  const inputRef = useRef<HTMLInputElement>(null)
+
+  // Robust auto-focus after modal animation
+  useEffect(() => {
+    const timer = setTimeout(() => inputRef.current?.focus(), 50)
+    return () => clearTimeout(timer)
+  }, [])
 
   useEffect(() => {
     const trimmed = value.trim()
@@ -41,7 +48,7 @@ export function SpaceModal({ mode, defaultName = '', siblings, onConfirm, onClos
       <form onSubmit={handleSubmit} className={styles.form}>
         <div className={styles.field}>
           <input
-            autoFocus
+            ref={inputRef}
             className={styles.input}
             placeholder="空间名称"
             value={value}

@@ -4,10 +4,6 @@ import {
   Search,
   X,
   PanelLeft,
-  PanelRight,
-  LayoutList,
-  LayoutGrid,
-  Plus,
   Sun,
   Moon,
   Monitor,
@@ -17,6 +13,7 @@ import {
 import { IconButton } from '../ui/IconButton'
 import { useAppStore } from '../../store/appStore'
 import { useTheme } from '../../hooks/useTheme'
+import { setStorage } from '../../lib/storage'
 import styles from './TopBar.module.css'
 import type { AppMode } from '../../types'
 
@@ -36,14 +33,19 @@ interface Props {
   mode: AppMode
 }
 
+/** Persist current active state so the target panel can restore it */
+async function persistActiveState() {
+  const { activeNoteId, activeSpaceId } = useAppStore.getState()
+  await setStorage('lastOpenNoteId', activeNoteId)
+  await setStorage('lastOpenSpaceId', activeSpaceId)
+}
+
 export function TopBar({ mode }: Props) {
   const [searchOpen, setSearchOpen] = useState(false)
   const searchRef = useRef<HTMLInputElement>(null)
   const {
     searchQuery, setSearchQuery,
-    viewMode, setViewMode,
     leftCollapsed, toggleLeftCollapsed,
-    midCollapsed, toggleMidCollapsed,
     activeNoteId, setActiveNote,
   } = useAppStore()
   const { themeMode, cycleTheme } = useTheme()
@@ -58,14 +60,23 @@ export function TopBar({ mode }: Props) {
     setSearchQuery('')
   }
 
-  function openSidePanel() {
-    // Background service worker handles windowId lookup and sidePanel.open()
+  async function openSidePanel() {
+    await persistActiveState()
     chrome.runtime.sendMessage({ type: 'OPEN_SIDE_PANEL' })
+    if (mode === 'popup') {
+      setTimeout(() => window.close(), 200)
+    }
   }
 
-  function openFullPage() {
+  async function openFullPage() {
+    await persistActiveState()
     const url = chrome.runtime.getURL('src/entries/fullpage/index.html')
     window.open(url, '_blank')
+    if (mode === 'popup') {
+      setTimeout(() => window.close(), 200)
+    } else if (mode === 'sidepanel') {
+      chrome.runtime.sendMessage({ type: 'CLOSE_SIDE_PANEL' })
+    }
   }
 
   return (
@@ -104,17 +115,17 @@ export function TopBar({ mode }: Props) {
         {/* Back button in popup note view */}
         {mode === 'popup' && activeNoteId && (
           <IconButton label="返回列表" onClick={() => setActiveNote(null)}>
-            <PanelRight size={14} />
+            <PanelLeft size={14} />
           </IconButton>
         )}
 
         {mode !== 'sidepanel' && (
-          <IconButton label="侧边面板" onClick={openSidePanel}>
+          <IconButton label="在侧边面板打开" onClick={openSidePanel}>
             <SidebarOpen size={14} />
           </IconButton>
         )}
         {mode !== 'fullpage' && (
-          <IconButton label="完整页面" onClick={openFullPage}>
+          <IconButton label="在完整页面打开" onClick={openFullPage}>
             <Maximize2 size={14} />
           </IconButton>
         )}
@@ -122,36 +133,13 @@ export function TopBar({ mode }: Props) {
         {/* Collapse left panel */}
         {mode !== 'popup' && (
           <IconButton
-            label={leftCollapsed ? '展开空间栏' : '折叠空间栏'}
+            label={leftCollapsed ? '展开左侧栏' : '折叠左侧栏'}
             active={leftCollapsed}
             onClick={toggleLeftCollapsed}
           >
             <PanelLeft size={14} />
           </IconButton>
         )}
-
-        {/* Collapse mid panel */}
-        <IconButton
-          label={midCollapsed ? '展开列表栏' : '折叠列表栏'}
-          active={midCollapsed}
-          onClick={toggleMidCollapsed}
-        >
-          <PanelRight size={14} />
-        </IconButton>
-
-        {/* View mode toggle */}
-        <IconButton
-          label={viewMode === 'list' ? '切换为瀑布流' : '切换为列表'}
-          active={viewMode === 'masonry'}
-          onClick={() => setViewMode(viewMode === 'list' ? 'masonry' : 'list')}
-        >
-          {viewMode === 'list' ? <LayoutGrid size={14} /> : <LayoutList size={14} />}
-        </IconButton>
-
-        {/* New note */}
-        <IconButton label="新建笔记">
-          <Plus size={14} />
-        </IconButton>
 
         {/* Theme */}
         <IconButton label={THEME_LABELS[themeMode]} onClick={cycleTheme}>

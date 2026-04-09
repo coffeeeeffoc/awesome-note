@@ -5,8 +5,9 @@ import { Link } from '@tiptap/extension-link'
 import { EditorToolbar } from './EditorToolbar'
 import { LinkPopover } from './LinkPopover'
 import { AwesomeImageExtension } from '../../extensions/AwesomeImage'
-import { saveImage } from '../../lib/db'
+import { saveImage, createSnapshot } from '../../lib/db'
 import { useAppStore } from '../../store/appStore'
+import { useToastStore } from '../ui/Toast'
 import styles from './Editor.module.css'
 import type { Note } from '../../types'
 import type { JSONContent } from '@tiptap/react'
@@ -18,6 +19,7 @@ interface Props {
 
 export function Editor({ note, onSave }: Props) {
   const setSaveStatus = useAppStore((s) => s.setSaveStatus)
+  const addToast = useToastStore((s) => s.addToast)
   const [showLinkPopover, setShowLinkPopover] = useState(false)
   const saveTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
   const noteIdRef = useRef(note.id)
@@ -34,6 +36,24 @@ export function Editor({ note, onSave }: Props) {
     },
     [note, onSave, setSaveStatus],
   )
+
+  // Immediate save + snapshot for Cmd+S
+  const handleSaveShortcut = useCallback(async () => {
+    if (saveTimer.current) clearTimeout(saveTimer.current)
+    const currentContent = editor?.getJSON() ?? note.content
+    const currentTitle = titleRef.current
+    const updated = { ...note, title: currentTitle, content: currentContent }
+    setSaveStatus('saving')
+    await onSave(updated)
+    setSaveStatus('saved')
+    await createSnapshot({
+      noteId: note.id,
+      title: currentTitle,
+      content: currentContent,
+      trigger: 'save-shortcut',
+    })
+    addToast('已保存，快照已添加')
+  }, [note, onSave, setSaveStatus, addToast])
 
   const editor = useEditor({
     extensions: [
@@ -67,6 +87,12 @@ export function Editor({ note, onSave }: Props) {
         return false
       },
       handleKeyDown(_view, event) {
+        // Cmd/Ctrl+S = save + snapshot
+        if (event.key === 's' && (event.metaKey || event.ctrlKey) && !event.shiftKey) {
+          event.preventDefault()
+          handleSaveShortcut()
+          return true
+        }
         // Shift+Ctrl+V = paste as plain text
         if (event.key === 'v' && event.ctrlKey && event.shiftKey) {
           event.preventDefault()
@@ -81,6 +107,18 @@ export function Editor({ note, onSave }: Props) {
   })
 
   const titleRef = useRef(note.title)
+
+  // Also capture Cmd+S globally (when focus is not in editor, e.g., on title input)
+  useEffect(() => {
+    function handleGlobalKeyDown(e: KeyboardEvent) {
+      if (e.key === 's' && (e.metaKey || e.ctrlKey) && !e.shiftKey) {
+        e.preventDefault()
+        handleSaveShortcut()
+      }
+    }
+    document.addEventListener('keydown', handleGlobalKeyDown)
+    return () => document.removeEventListener('keydown', handleGlobalKeyDown)
+  }, [handleSaveShortcut])
 
   // Sync editor content when note changes
   useEffect(() => {

@@ -52,6 +52,9 @@ export function useNotes(spaceId?: string | null, search?: string) {
             reload()
           }
         })
+      } else if (msg.type === 'NOTE_TITLE_CHANGED') {
+        // Instant title sync without waiting for DB
+        setNotes((prev) => prev.map((n) => (n.id === msg.id ? { ...n, title: msg.title } : n)))
       }
     })
     return unsub

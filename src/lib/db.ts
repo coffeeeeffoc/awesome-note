@@ -1,15 +1,16 @@
 import { openDB as idbOpen, type IDBPDatabase } from 'idb'
-import type { Space, Note, Tag, NoteImage } from '../types'
+import type { Space, Note, Tag, NoteImage, Snapshot } from '../types'
 import type { JSONContent } from '@tiptap/react'
 import { nanoid } from './utils'
 
-const DB_VERSION = 1
+const DB_VERSION = 2
 
 type AwesomeNoteDB = {
   notes: Note
   spaces: Space
   tags: Tag
   images: NoteImage
+  snapshots: Snapshot
 }
 
 async function openDB(name = 'awesome-note'): Promise<IDBPDatabase<AwesomeNoteDB>> {
@@ -31,6 +32,11 @@ async function openDB(name = 'awesome-note'): Promise<IDBPDatabase<AwesomeNoteDB
       if (!db.objectStoreNames.contains('images')) {
         const imagesStore = db.createObjectStore('images', { keyPath: 'id' })
         imagesStore.createIndex('noteId', 'noteId')
+      }
+      if (!db.objectStoreNames.contains('snapshots')) {
+        const snapshotStore = db.createObjectStore('snapshots', { keyPath: 'id' })
+        snapshotStore.createIndex('noteId', 'noteId')
+        snapshotStore.createIndex('createdAt', 'createdAt')
       }
     },
   })
@@ -232,4 +238,56 @@ export async function deleteImagesForNote(noteId: string, dbName?: string): Prom
 export async function deleteImageById(id: string, dbName?: string): Promise<void> {
   const db = await openDB(dbName)
   await db.delete('images', id)
+}
+
+// ─── Snapshots ──────────────────────────────────────────────────────────────
+
+export async function createSnapshot(
+  data: { noteId: string; title: string; content: JSONContent; trigger: 'manual' | 'save-shortcut' },
+  dbName?: string,
+): Promise<Snapshot> {
+  const db = await openDB(dbName)
+  const snapshot: Snapshot = { id: nanoid(), ...data, createdAt: Date.now() }
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  await (db as any).put('snapshots', snapshot)
+  return snapshot
+}
+
+export async function getSnapshotsForNote(noteId: string, dbName?: string): Promise<Snapshot[]> {
+  const db = await openDB(dbName)
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const all = await (db as any).getAllFromIndex('snapshots', 'noteId', noteId) as Snapshot[]
+  return all.sort((a: Snapshot, b: Snapshot) => b.createdAt - a.createdAt)
+}
+
+export async function deleteSnapshotsAfter(noteId: string, afterTimestamp: number, dbName?: string): Promise<void> {
+  const db = await openDB(dbName)
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const all = await (db as any).getAllFromIndex('snapshots', 'noteId', noteId) as Snapshot[]
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const tx = (db as any).transaction('snapshots', 'readwrite')
+  for (const s of all) {
+    if (s.createdAt > afterTimestamp) {
+      await tx.store.delete(s.id)
+    }
+  }
+  await tx.done
+}
+
+export async function deleteSnapshotById(id: string, dbName?: string): Promise<void> {
+  const db = await openDB(dbName)
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  await (db as any).delete('snapshots', id)
+}
+
+export async function deleteSnapshotsForNote(noteId: string, dbName?: string): Promise<void> {
+  const db = await openDB(dbName)
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const all = await (db as any).getAllFromIndex('snapshots', 'noteId', noteId) as Snapshot[]
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const tx = (db as any).transaction('snapshots', 'readwrite')
+  for (const s of all) {
+    await tx.store.delete(s.id)
+  }
+  await tx.done
 }

@@ -36,6 +36,19 @@
   text-overflow: ellipsis;
   flex-shrink: 0;
   max-width: 50%;
+  cursor: text;
+}
+
+.titleInput {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text-primary);
+  width: 100%;
+  padding: 0;
+  border: none;
+  border-bottom: 1px solid var(--border-focus);
+  background: transparent;
+  outline: none;
 }
 
 .untitled {
