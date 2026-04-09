@@ -20,7 +20,11 @@ export default defineManifest({
   side_panel: {
     default_path: 'src/entries/sidepanel/index.html',
   },
-  permissions: ['storage', 'sidePanel'],
+  background: {
+    service_worker: 'src/background/service-worker.ts',
+    type: 'module',
+  },
+  permissions: ['storage', 'sidePanel', 'contextMenus'],
   commands: {
     _execute_action: {
       suggested_key: { default: 'Alt+N' },
